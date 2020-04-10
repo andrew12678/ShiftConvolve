@@ -15,7 +15,7 @@ There are no external dependencies required to be installed for this version of 
 The most simple installation involves simply cloning this repository and installing `ShiftConvolve` from source. 
 
 ```console
-https://github.com/andrew12678/ShiftConvolve.git
+git clone https://github.com/andrew12678/ShiftConvolve.git
 cd ShiftConvolve
 install.packages('ShiftConvolvePoibin_2.2.0.tar.gz', repos = NULL, type="source")
 ```
