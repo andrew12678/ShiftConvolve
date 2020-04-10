@@ -1,0 +1,4 @@
+export(shiftpval)
+export(shiftConvolveLog)
+export(dcpval)
+useDynLib(ShiftConvolvePoibin)
