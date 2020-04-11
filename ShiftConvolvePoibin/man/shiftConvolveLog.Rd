@@ -4,12 +4,12 @@
 \alias{shiftConvolveLog}
 \title{shiftConvolveLog}
 \usage{
-shiftConvolveLog(p, S0 = 0, process = TRUE)
+shiftConvolveLog(p, S0 = -1, process = TRUE)
 }
 \arguments{
 \item{p}{Accepts a list of probabilities}
 
-\item{S0}{An observed value, default set to 0}
+\item{S0}{An observed value, default set to -1, which will set the shifting paramater t0 to 0}
 
 \item{process}{Whether we want to process for 0s and 1s, always set to TRUE unless called from shiftpval}
 }

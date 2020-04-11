@@ -68,14 +68,14 @@ shiftedmean <- function(t, p, S0 = 0){
 #' @description
 #' Convolutes a vector of probabilities with exponential shift and returns the log of the distribution
 #' @param p Accepts a list of probabilities
-#' @param S0 An observed value, default set to 0
+#' @param S0 An observed value, default set to -1, which will set the shifting paramater t0 to 0
 #' @param process Whether we want to process for 0s and 1s, always set to TRUE unless called from shiftpval
 #' @examples
 #' set.seed(18)
 #' a = runif(100)
 #' shiftConvolveLog(a, 50)
 #' @export
-shiftConvolveLog<-function(p, S0 = 0, process = TRUE){
+shiftConvolveLog<-function(p, S0 = -1, process = TRUE){
   if(process){
     p = process(p)
     n0 = p[1]
@@ -83,8 +83,13 @@ shiftConvolveLog<-function(p, S0 = 0, process = TRUE){
     p = p[3:length(p)]
   }
 
-  U <- uniroot(shiftedmean, interval = c(-50,50), p, S0, tol = 10^-16) #finds a suitable shifting parameter
-  t0 <- U$root
+  if(S0 == -1){
+    t0 <-0
+  }else{
+    U <- uniroot(shiftedmean, interval = c(-50,50), p, S0, tol = 10^-16) #finds a suitable shifting parameter
+    t0 <- U$root
+  }
+
 
   lp <- log(c(1-p,p))
   n = length(p)
