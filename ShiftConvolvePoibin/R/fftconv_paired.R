@@ -144,7 +144,7 @@ dcConvolvePairedLog <- function(p){
 #'
 #' @param pb A vector of Bernoulli probabilities
 #' @param S0 An observed value
-#' @param far.tail Logical determining whether to sum the far tail (defult) or near tail
+#' @param right.tail Logical determining whether to sum the right tail (default) or left tail
 #'
 #' @return A vector containing the log of the p-value and the p-value
 #'
@@ -152,10 +152,10 @@ dcConvolvePairedLog <- function(p){
 #' set.seed(18)
 #' a = runif(100)
 #' shiftpval(a, 50)
-#' shiftpval(a, 50, far.tail=FALSE)
+#' shiftpval(a, 50, right.tail=FALSE)
 #'
 #' @export
-shiftpval <- function(pb,S0,far.tail=TRUE){
+shiftpval <- function(pb,S0,right.tail=TRUE){
   pb = process(pb)
   n0 = pb[1]
   n1 = pb[2]
@@ -164,7 +164,7 @@ shiftpval <- function(pb,S0,far.tail=TRUE){
 
   S1 = S0 - n1
   if (S1 <= 0){
-    if (far.tail){
+    if (right.tail){
       return(c(0,1))
     } else {
       return(c(-Inf,0))
@@ -172,7 +172,7 @@ shiftpval <- function(pb,S0,far.tail=TRUE){
   }
 
   if (S1 >= n){
-    if (far.tail){
+    if (right.tail){
       return(c(-Inf,0))
     } else {
       return(c(0,1))
@@ -192,20 +192,20 @@ shiftpval <- function(pb,S0,far.tail=TRUE){
   ldist = c(rep(-Inf, n1), ldist)
   ldist = c(ldist, rep(-Inf,n0))
 
-  if (far.tail){
+  if (right.tail){
     if (t0 > 0){
       lp <- logsum(ldist[c((S0+1):length(ldist))])
       p <- exp(lp)
     }
     else{
-      lneartail <- logsum(ldist[c(0:S0)])
-      p <- 1-exp(lneartail)
+      llefttail <- logsum(ldist[c(0:S0)])
+      p <- 1-exp(llefttail)
       lp <- log(p)
     }
   } else {
     if (t0 > 0){
-      lfartail <- logsum(ldist[c((S0+2):length(ldist))])
-      p <- 1-exp(lfartail)
+      lrighttail <- logsum(ldist[c((S0+2):length(ldist))])
+      p <- 1-exp(lrighttail)
       lp <- log(p)
     }
     else{
@@ -223,7 +223,7 @@ shiftpval <- function(pb,S0,far.tail=TRUE){
 #'
 #' @param pb A vector of Bernoulli probabilities
 #' @param S0 An observed value
-#' @param far.tail Logical determining whether to sum the far tail (defult) or near tail
+#' @param right.tail Logical determining whether to sum the right tail (default) or left tail
 #' @param log.p Logical determining whether to return the log of the p-value or the p-value
 #' @return A vector containing the log of the p-value and the p-value
 #'
@@ -231,10 +231,10 @@ shiftpval <- function(pb,S0,far.tail=TRUE){
 #' set.seed(18)
 #' a = runif(100)
 #' dcpval(a, 50)
-#' dcpval(a, 50, far.tail=FALSE)
-#' dcpval(a, 50, far.tail=TRUE, log.p=TRUE)
+#' dcpval(a, 50, right.tail=FALSE)
+#' dcpval(a, 50, right.tail=TRUE, log.p=TRUE)
 #' @export
-dcpval <- function(pb,S0,far.tail=TRUE,log.p=FALSE){
+dcpval <- function(pb,S0,right.tail=TRUE,log.p=FALSE){
   pb = process(pb)
   n0 = pb[1]
   n1 = pb[2]
@@ -243,7 +243,7 @@ dcpval <- function(pb,S0,far.tail=TRUE,log.p=FALSE){
 
   S1 = S0 - n1
   if (S1 <= 0){
-    if (far.tail){
+    if (right.tail){
       return(c(0,1))
     } else {
       return(c(-Inf,0))
@@ -251,7 +251,7 @@ dcpval <- function(pb,S0,far.tail=TRUE,log.p=FALSE){
   }
 
   if (S1 >= n){
-    if (far.tail){
+    if (right.tail){
       return(c(-Inf,0))
     } else {
       return(c(0,1))
@@ -262,7 +262,7 @@ dcpval <- function(pb,S0,far.tail=TRUE,log.p=FALSE){
     ldist <- dcConvolvePairedLog(pb)
     ldist = c(rep(-Inf, n1), ldist)
     ldist = c(ldist, rep(-Inf,n0))
-    if(far.tail){
+    if(right.tail){
       lp <- logsum(ldist[c((S0+1):length(ldist))])
     }else{
       lp <- logsum(ldist[c(0:(S0+1))])
@@ -272,7 +272,7 @@ dcpval <- function(pb,S0,far.tail=TRUE,log.p=FALSE){
     dist<- dcConvolvePaired(pb)
     dist = c(rep(0, n1), dist)
     dist = c(dist, rep(0,n0))
-    if(far.tail){
+    if(right.tail){
       p <- sum(dist[c((S0+1):length(dist))])
     }else{
       p <- sum(ldist[c(0:(S0+1))])

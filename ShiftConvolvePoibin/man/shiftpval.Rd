@@ -4,14 +4,14 @@
 \alias{shiftpval}
 \title{shiftpval}
 \usage{
-shiftpval(pb, S0, far.tail = TRUE)
+shiftpval(pb, S0, right.tail = TRUE)
 }
 \arguments{
 \item{pb}{A vector of Bernoulli probabilities}
 
 \item{S0}{An observed value}
 
-\item{far.tail}{Logical determining whether to sum the far tail (defult) or near tail}
+\item{right.tail}{Logical determining whether to sum the right tail (default) or left tail}
 }
 \value{
 A vector containing the log of the p-value and the p-value
@@ -24,6 +24,6 @@ of the PB distribution using shiftConvolveLog
 set.seed(18)
 a = runif(100)
 shiftpval(a, 50)
-shiftpval(a, 50, far.tail=FALSE)
+shiftpval(a, 50, right.tail=FALSE)
 
 }

@@ -4,14 +4,14 @@
 \alias{dcpval}
 \title{dcpval}
 \usage{
-dcpval(pb, S0, far.tail = TRUE, log.p = FALSE)
+dcpval(pb, S0, right.tail = TRUE, log.p = FALSE)
 }
 \arguments{
 \item{pb}{A vector of Bernoulli probabilities}
 
 \item{S0}{An observed value}
 
-\item{far.tail}{Logical determining whether to sum the far tail (defult) or near tail}
+\item{right.tail}{Logical determining whether to sum the right tail (default) or left tail}
 
 \item{log.p}{Logical determining whether to return the log of the p-value or the p-value}
 }
@@ -26,6 +26,6 @@ of the PB distribution using a direct convolution
 set.seed(18)
 a = runif(100)
 dcpval(a, 50)
-dcpval(a, 50, far.tail=FALSE)
-dcpval(a, 50, far.tail=TRUE, log.p=TRUE)
+dcpval(a, 50, right.tail=FALSE)
+dcpval(a, 50, right.tail=TRUE, log.p=TRUE)
 }
