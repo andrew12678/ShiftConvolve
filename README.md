@@ -17,7 +17,7 @@ The most simple installation involves simply cloning this repository and install
 ```console
 git clone https://github.com/andrew12678/ShiftConvolve.git
 cd ShiftConvolve
-install.packages('ShiftConvolvePoibin_2.4.0.tar.gz', repos = NULL, type="source")
+install.packages('ShiftConvolvePoibin_2.5.0.tar.gz', repos = NULL, type="source")
 ```
 
 An alternative installation procedure involves cloning the repository, creating a `RStudio` project in the `ShiftConvolvePoibin` folder and then building. 
