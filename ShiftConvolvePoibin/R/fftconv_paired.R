@@ -1,30 +1,207 @@
-#' Computing the Poisson Binomial Distribution using Shifted FFT
+#' Computing the Poisson Binomial Distribution using ShiftConvolve
 #'
-#' A package which uses exponential shifting and Fast Fourier Transformations to
+#' A package which uses exponential shifting and Fast Fourier Transformations with the minFFT library to
 #' compute the distribution of the Poisson Binomial Distribution
 #'
-#' @rdname ShiftedConvolvePB
-#' @author Andrew Ray Lee, Noah Peres and Uri Keich
-#' @title ShiftConvolve
+#'@rdname ShiftedConvolvePB
+#'@useDynLib ShiftConvolvePoibin
+#'@title ShiftConvolve Poisson Binomial
 #'
-process = function(p){
-  n0 = sum(p == 0)
-  n1 = sum(p == 1)
-  if((n0 != 0) | (n1 != 0)){
-    p = p[(p != 0) & (p != 1)]
+#'@name ShiftedConvolvePB
+#'@author Andrew Ray Lee, Noah Peres and Uri Keich
+#'@description
+#'Density, distribution function, quantile function and random generation for
+#'the Poisson binomial distribution with the option of using the ShiftConvolve method.
+#'
+#'
+#'@param x           Either a vector of observed numbers of successes
+#'                   (or vector of quantiles as dbinom/pbinom refers to) or NULL.
+#'                   If NULL, probabilities of all possible observations are returned.
+#'@param p           Vector of probabilities for computation of quantiles.
+#'@param n           Number of observations. If \code{length(n) > 1}, the
+#'                   length is taken to be the number required.
+#'@param probs       Vector of probabilities of success of each Bernoulli
+#'                   trial.
+#'@param method      Character string that specifies the method of computation
+#'                   and must be either \code{"ShiftConvolve"} or \code{"DC"}
+#'@param log.p       logical; if TRUE, probabilities p are given as log(p).
+#'@param lower.tail  Logical value indicating if results are \eqn{P[X \le x]}
+#'                   (if \code{TRUE}; default) or \eqn{P[X > x]} (if
+#'                   \code{FALSE}).
+#'
+#'@examples
+#'set.seed(18)
+#'n=1000
+#'probs <- runif(n)
+#'x <- c(200, 500, 800)
+#'p <- seq(0, 1, 0.01)
+#'dpoisbin(x,probs,method="ShiftConvolve",log.p=FALSE)
+#'ppoisbin(x,probs,method="ShiftConvolve",lower.tail=FALSE,log.p=TRUE)
+#'qpoisbin(p,probs,method="ShiftConvolve",lower.tail=TRUE,log.p=FALSE)
+#'rpoisbin(n,probs,method="ShiftConvolve")
+#'@export
+dpoisbin <- function(x, probs, method = "ShiftConvolve", log.p = FALSE){
+  #Check if input x is NULL,
+  #If so we return all possible probabilities
+  #Otherwise we ensure X is all integers
+  if(is.null(x)){
+    n<-length(probs)
+    x <- 0:n
+  }else{
+    x <- as.vector(x)
+    if(!all(x == floor(x))){
+      stop("'x' must be either NULL or all integers")
+    }
   }
-  return(c(n0,n1,p))
+
+  #Check if we are given valid probabilities
+  if(is.null(probs) || any(is.na(probs) | probs < 0 | probs > 1)){
+    stop("'probs' must contain valid probabilities")
+  }
+
+  #Ensure we are using a valid method
+  if(!(method %in% c("ShiftConvolve", "DC"))){
+    stop("'method' provided can only be 'ShiftConvolve' or 'DC'")
+  }
+
+  #Ensure we receive a legimate boolean for log.p
+  if(!(log.p %in% c(TRUE, FALSE))){
+    stop("'log.p' provided can only be TRUE or FALSE")
+  }
+
+  if(method == "ShiftConvolve"){
+    return(shift_pb_density(x = x, probs = probs, log.p = log.p))
+  }else if(method == "DC"){
+    return(dc_pb_density(x = x, probs = probs, log.p = log.p))
+  }
+
+
 }
-#'
-#' fftconv
-#' Performs the 'streamlined' approach of convoluting a given probability vector in the Fourier domain,
-#' this function prepares neccessary vectors, including the final result vector, which will be passed
-#' to the a C program to attain the probability mass function.
-#' @param p Accepts a list of probabilities
-#' @return The final probability mass function from the convolution
+
+#'@rdname ShiftedConvolvePB
+#'@export
+ppoisbin <- function(x, probs, method = "ShiftConvolve", lower.tail = TRUE, log.p = FALSE){
+  #Check if input x is NULL,
+  #If so we return all possible probabilities
+  #Otherwise we ensure X is all integers
+  if(is.null(x)){
+    n<-length(probs)
+    x <- 0:n
+  }else{
+    x <- as.vector(x)
+    if(!all(x == floor(x))){
+      stop("'x' must be either NULL or all integers")
+    }
+  }
+
+  #Check if we are given valid probabilities
+  if(is.null(probs) || any(is.na(probs) | probs < 0 | probs > 1)){
+    stop("'probs' must contain valid probabilities")
+  }
+
+  #Ensure we are using a valid method
+  if(!(method %in% c("ShiftConvolve", "DC"))){
+    stop("'method' provided can only be 'ShiftConvolve' or 'DC'")
+  }
+
+  #Ensure we receive a legimate boolean for lower.tail
+  if(!(lower.tail %in% c(TRUE, FALSE))){
+    stop("'lower.tail' provided can only be TRUE or FALSE")
+  }
+
+  #Ensure we receive a legimate boolean for log.p
+  if(!(log.p %in% c(TRUE, FALSE))){
+    stop("'log.p' provided can only be TRUE or FALSE")
+  }
+  if(method == "ShiftConvolve"){
+    return(shift_pb_dist(x = x, probs = probs, lower.tail = lower.tail, log.p = log.p))
+  }else if(method == "DC"){
+    return(dc_pb_dist(x = x, probs = probs, lower.tail = lower.tail, log.p = log.p))
+  }
+
+}
+
+#'@rdname ShiftedConvolvePB
+#'@export
+qpoisbin <- function(p, probs, method = "ShiftConvolve", lower.tail = TRUE, log.p = FALSE){
+  #Ensure we receive a legimate boolean for log.p
+  if(!(log.p %in% c(TRUE, FALSE))){
+    stop("'log.p' provided can only be TRUE or FALSE")
+  }
+
+  # Check that 'p' contains only probabilities
+  if(!log.p){
+    if(is.null(p) || any(is.na(p) | p < 0 | p > 1))
+      stop("'p' must contain real numbers between 0 and 1 if log.p is FALSE")
+  }else{
+    if(is.null(p) || any(is.na(p) | p > 0))
+      stop("'p' must contain real numbers between -Inf and 0 if log.p is TRUE")
+  }
+
+  ## Setting x=NULL gives us the CDF (also checkse other variables), log.p also set to FALSE
+  cdf <- ppoisbin(NULL, probs = probs, method = method, lower.tail = lower.tail, log.p = FALSE)
+
+    #Matching with CDF, log.p is TRUE
+  if(log.p){
+    p <- exp(p)
+  }
+
+  return_quantiles = vector(mode = "integer", length(p))
+
+  curr_cdf_pos <- 1
+  cdf_length <- length(cdf)
+  if(lower.tail){
+    for(prob in sort(unique(p))){
+      indexes <- which(p == prob)
+      while(curr_cdf_pos < cdf_length && cdf[curr_cdf_pos] <= prob){
+        curr_cdf_pos <- curr_cdf_pos + 1
+      }
+      return_quantiles[indexes] <- curr_cdf_pos - 1
+    }
+  }else{
+    for(prob in sort(unique(p), decreasing = TRUE)){
+      indexes <- which(p == prob)
+      while(curr_cdf_pos < cdf_length && cdf[curr_cdf_pos] >= prob){
+        curr_cdf_pos <- curr_cdf_pos + 1
+      }
+      return_quantiles[indexes] <- curr_cdf_pos - 1
+    }
+  }
+
+  return(return_quantiles)
+
+}
+
+#'@rdname ShiftedConvolvePB
+#'@export
+rpoisbin <- function(n, probs){
+  # check if 'n' is NULL
+  if(is.null(n)){
+    stop("'n' must not be NULL!")
+  }
+
+  #Check if we are given valid probabilities
+  if(is.null(probs) || any(is.na(probs) | probs < 0 | probs > 1)){
+    stop("'probs' must contain valid probabilities")
+  }
+
+  len <- length(n)
+  if(len > 1){
+    n <- len
+  }
+
+  return_probs <- rep(0, n)
+
+  for(i in probs){
+    return_probs <- return_probs + rbinom(n,1,i)
+  }
+
+  return(return_probs)
+
+}
+
 fftconv = function(p){
-  #Calculating the sizes of the vectors so they can be declared and passed to C
-  input = as.vector(p)
+  input = as.vector(p)   #Calculating the sizes of the vectors so they can be declared and passed to C
   n = length(input)/2
   r <- 4
   c <-n
@@ -55,34 +232,22 @@ fftconv = function(p){
            as.numeric(out_vec))[[6]]
   return(pmf)
 }
-#'
-#'shiftMean
-#'
-#'The shiftMean function evaluates the mean of a PB distribution shifted by t (minus S0)
+
+process = function(p){
+  n0 = sum(p == 0)
+  n1 = sum(p == 1)
+  if((n0 != 0) | (n1 != 0)){
+    p = p[(p != 0) & (p != 1)]
+  }
+  return(c(n0,n1,p))
+}
+
 shiftedmean <- function(t, p, S0 = 0){
   v <- exp(t)*(p)/((1-p)+exp(t)*(p))
   return(sum(v)-S0)
 }
-#'
-#' shiftConvolveLog
-#' @description
-#' Convolutes a vector of probabilities with exponential shift and returns the log of the distribution
-#' @param p Accepts a list of probabilities
-#' @param S0 An observed value, default set to -1, which will set the shifting paramater t0 to 0
-#' @param process Whether we want to process for 0s and 1s, always set to TRUE unless called from shiftpval
-#' @examples
-#' set.seed(18)
-#' a = runif(100)
-#' shiftConvolveLog(a, 50)
-#' @export
-shiftConvolveLog<-function(p, S0 = -1, process = TRUE){
-  if(process){
-    p = process(p)
-    n0 = p[1]
-    n1 = p[2]
-    p = p[3:length(p)]
-  }
 
+shiftConvolveLog<-function(p, S0 = -1){
   if(S0 == -1){
     t0 <-0
   }else{
@@ -108,16 +273,12 @@ shiftConvolveLog<-function(p, S0 = -1, process = TRUE){
   S <- ret[[5]]
   PBshift <- fftconv(exp(S)) #convolve using FFT
   lPBshift <- log(PBshift)
-  lMPB <- -sum(M) #(log)MGF of shifted PB at -t0
   l<- length(lPBshift)
   k <- c(0:(l-1))
   PB <- lPBshift + -t0*k + sum(M)
   return(PB)
 }
-#'
-#' logsum
-#' This function calculates the a sum of a vector (in log space, returns a log)
-#' @param x A vector
+
 logsum <- function(x) {
   xmax <- max(x)
   v <- x-xmax
@@ -125,8 +286,7 @@ logsum <- function(x) {
   ans <- xmax + log(sum(v))
   return(ans)
 }
-#'
-#'
+
 dcConvolvePaired <- function(p){
   n = length(p);
   result <- vector("double", length = n+1)
@@ -134,10 +294,9 @@ dcConvolvePaired <- function(p){
            as.numeric(p),
            as.integer(n),
            as.numeric(result))
-  #pmf = ret[[1]]
   return(ret[[3]])
 }
-#'
+
 dcConvolvePairedLog <- function(p){
   n = length(p);
   result <- vector("double", length = n+1)
@@ -145,157 +304,327 @@ dcConvolvePairedLog <- function(p){
            as.numeric(p),
            as.integer(n),
            as.numeric(result))
-  #pmf = ret[[1]]
   return(ret[[3]])
 }
-#' shiftpval
-#'
-#' @description
-#' The function takes in a vector of (Bernoulli) probabilities, an observed value s0, and calculates (log(p-value), p-value)
-#' of the PB distribution using shiftConvolveLog
-#'
-#' @param pb A vector of Bernoulli probabilities
-#' @param S0 An observed value
-#' @param right.tail Logical determining whether to sum the right tail (default) or left tail
-#'
-#' @return A vector containing the log of the p-value and the p-value
-#'
-#' @examples
-#' set.seed(18)
-#' a = runif(100)
-#' shiftpval(a, 50)
-#' shiftpval(a, 50, right.tail=FALSE)
-#'
-#' @export
-shiftpval <- function(pb,S0,right.tail=TRUE){
-  pb = process(pb)
-  n0 = pb[1]
-  n1 = pb[2]
-  pb = pb[3:length(pb)]
-  n <- length(pb)+1
 
-  S1 = S0 - n1
-  if (S1 <= 0){
-    if (right.tail){
-      return(c(0,1))
-    } else {
-      return(c(-Inf,0))
-    }
-  }
+shift_pb_dist <- function(x, probs, lower.tail = TRUE, log.p=FALSE){
+  probs = process(probs)
+  n0 = probs[1]
+  n1 = probs[2]
+  probs = probs[3:length(probs)]
+  n <- length(probs)+1
 
-  if (S1 >= n){
-    if (right.tail){
-      return(c(-Inf,0))
-    } else {
-      return(c(0,1))
-    }
-  }
-
-  if (S1 == n-1){
-    ldist <- shiftConvolveLog(pb, (S1-1), process = FALSE)
-    U <- uniroot(shiftedmean, interval = c(-50,50), pb, S1-1, tol = 10^-16) #find a suitable shifting parameter
-    t0 <- U$root
-  }else{
-    ldist <- shiftConvolveLog(pb, S1, process = FALSE)
-    U <- uniroot(shiftedmean, interval = c(-50,50), pb, S1, tol = 10^-16) #find a suitable shifting parameter
-    t0 <- U$root
-  }
-
-  ldist = c(rep(-Inf, n1), ldist)
-  ldist = c(ldist, rep(-Inf,n0))
-
-  if (right.tail){
-    if (t0 > 0){
-      lp <- logsum(ldist[c((S0+1):length(ldist))])
-      p <- exp(lp)
-    }
-    else{
-      llefttail <- logsum(ldist[c(0:S0)])
-      p <- 1-exp(llefttail)
-      lp <- log(p)
-    }
-  } else {
-    if (t0 > 0){
-      lrighttail <- logsum(ldist[c((S0+2):length(ldist))])
-      p <- 1-exp(lrighttail)
-      lp <- log(p)
-    }
-    else{
-      lp <- logsum(ldist[c(0:(S0+1))])
-      p <- exp(lp)
-    }
-  }
-  return(c(lp,p))
-}
-#' dcpval
-#'
-#' @description
-#' The function takes in a vector of (Bernoulli) probabilities, an observed value s0, and calculates (log(p-value), p-value)
-#' of the PB distribution using a direct convolution
-#'
-#' @param pb A vector of Bernoulli probabilities
-#' @param S0 An observed value
-#' @param right.tail Logical determining whether to sum the right tail (default) or left tail
-#' @param log.p Logical determining whether to return the log of the p-value or the p-value
-#' @return A vector containing the log of the p-value and the p-value
-#'
-#' @examples
-#' set.seed(18)
-#' a = runif(100)
-#' dcpval(a, 50)
-#' dcpval(a, 50, right.tail=FALSE)
-#' dcpval(a, 50, right.tail=TRUE, log.p=TRUE)
-#' @export
-dcpval <- function(pb,S0,right.tail=TRUE,log.p=FALSE){
-  pb = process(pb)
-  n0 = pb[1]
-  n1 = pb[2]
-  pb = pb[3:length(pb)]
-  n <- length(pb)+1
-
-  S1 = S0 - n1
-  if (S1 <= 0){
-    if (right.tail){
-      return(c(0,1))
-    } else {
-      return(c(-Inf,0))
-    }
-  }
-
-  if (S1 >= n){
-    if (right.tail){
-      return(c(-Inf,0))
-    } else {
-      return(c(0,1))
-    }
-  }
-
-  if(log.p){
-    ldist <- dcConvolvePairedLog(pb)
-    ldist = c(rep(-Inf, n1), ldist)
-    ldist = c(ldist, rep(-Inf,n0))
-    if(right.tail){
-      lp <- logsum(ldist[c((S0+1):length(ldist))])
+  x_ordinary = c()
+  x_return_index = c()
+  pmf_computed = NULL
+  return_dist = vector(mode = "numeric", length = length(x))
+  for(i in 1:length(x)){
+    edge <- edge_prob(x[i], n,  n1, lower.tail, log.p)
+    if(!is.null(edge)){
+      return_dist[i] <- edge
     }else{
-      lp <- logsum(ldist[c(0:(S0+1))])
+      x_ordinary = c(x_ordinary, x[i])
+      x_return_index = c(x_return_index, i)
     }
-    return(lp)
-  }else{
-    dist<- dcConvolvePaired(pb)
-    dist = c(rep(0, n1), dist)
-    dist = c(dist, rep(0,n0))
-    if(right.tail){
-      p <- sum(dist[c((S0+1):length(dist))])
+  }
+
+  n_x_ordinary = length(x_ordinary)
+  if(n_x_ordinary == 0){
+    return(return_dist)
+  }else if(n_x_ordinary == 1){
+    y = x_ordinary[1] - n1
+    if (y == n-1){
+      if(log.p){
+        pmf_computed <- shiftConvolveLog(probs, (y-1))
+      }else{
+        pmf_computed <- exp(shiftConvolveLog(probs, (y-1)))
+      }
+
+      U <- uniroot(shiftedmean, interval = c(-50,50), probs, y-1, tol = 10^-16) #find a suitable shifting parameter
+      t0 <- U$root
     }else{
-      p <- sum(ldist[c(0:(S0+1))])
+      if(log.p){
+        pmf_computed <- shiftConvolveLog(probs, y)
+      }else{
+        pmf_computed <- exp(shiftConvolveLog(probs, y))
+      }
+      U <- uniroot(shiftedmean, interval = c(-50,50), probs, y, tol = 10^-16) #find a suitable shifting parameter
+      t0 <- U$root
     }
-    return(p)
+  }else{
+    pbd_mean <- sum(probs)
+    diff_x_pbd_mean <- x_ordinary - pbd_mean
+    count_pos = sum(diff_x_pbd_mean > 0)
+    count_neg = sum(diff_x_pbd_mean < 0)
+    if((count_pos > 0) & (count_neg > 0)){
+      if(log.p){
+        pmf_computed <- shiftConvolveLog(probs, S0 = -1)
+      }else{
+        pmf_computed <- exp(shiftConvolveLog(probs, S0 = -1))
+      }
+      t0 <- 0
+    }else{
+      closest <- x_ordinary[which.min(diff_x_pbd_mean)]
+      if(log.p){
+        pmf_computed <- shiftConvolveLog(probs, closest)
+      }else{
+        pmf_computed <- exp(shiftConvolveLog(probs, closest))
+      }
+      U <- uniroot(shiftedmean, interval = c(-50,50), probs, closest, tol = 10^-16) #find a suitable shifting parameter
+      t0 <- U$root
+    }
+  }
+
+  pmf_computed = c(rep(-Inf, n1), pmf_computed)
+  pmf_computed = c(pmf_computed, rep(-Inf,n0))
+
+  for(i in 1:length(x_ordinary)){
+    if(lower.tail){
+      if(t0 > 0){
+        if(log.p){
+          log_right_tail <- logsum(pmf_computed[c((x_ordinary[i]+2):length(pmf_computed))])
+          p <- 1-exp(log_right_tail)
+          lp <- log(p)
+          return_dist[x_return_index[i]]<-lp
+        }else{
+          right_tail <- sum(pmf_computed[c((x_ordinary[i]+2):length(pmf_computed))])
+          return_dist[x_return_index[i]]<-1-right_tail
+        }
+      }else{
+        if(log.p){
+          lp <- logsum(pmf_computed[c(0:(x_ordinary[i]+1))])
+          return_dist[x_return_index[i]]<-lp
+        }else{
+          p <- sum(pmf_computed[c(0:(x_ordinary[i]+1))])
+          return_dist[x_return_index[i]]<-p
+        }
+      }
+    }else{
+      if (t0 > 0){
+        if(log.p){
+          lp <- logsum(pmf_computed[c((x_ordinary[i]+2):length(pmf_computed))])
+          return_dist[x_return_index[i]]<-lp
+        }else{
+          p <- sum(pmf_computed[c((x_ordinary[i]+2):length(pmf_computed))])
+          return_dist[x_return_index[i]]<-p
+        }
+      }
+      else{
+        if(log.p){
+          log_left_tail <- logsum(pmf_computed[c(0:x_ordinary[i]+1)])
+          p <- 1-exp(log_left_tail)
+          lp <- log(p)
+          return_dist[x_return_index[i]]<-lp
+        }else{
+          left_tail <- sum(pmf_computed[c(0:x_ordinary[i]+1)])
+          return_dist[x_return_index[i]]<-1-left_tail
+        }
+      }
+    }
+  }
+  return(return_dist)
+}
+
+shift_pb_density <- function(x, probs, log.p=FALSE){
+  probs = process(probs)
+  n0 = probs[1]
+  n1 = probs[2]
+  probs = probs[3:length(probs)]
+  n <- length(probs)+1
+
+  x_ordinary = c()
+  x_return_index = c()
+  pmf_computed = NULL
+  return_density = vector(mode = "numeric", length = length(x))
+  for(i in 1:length(x)){
+    edge <- edge_density(x[i], n, n1, log.p)
+    if(!is.null(edge)){
+      return_density[i] <- edge
+    }else{
+      x_ordinary = c(x_ordinary, x[i])
+      x_return_index = c(x_return_index, i)
+    }
+  }
+
+  n_x_ordinary = length(x_ordinary)
+  if(n_x_ordinary == 0){
+    return(return_density)
+  }else if(n_x_ordinary == 1){
+    y = x_ordinary[1] - n1
+    if (y == n-1){
+      pmf_computed <- shiftConvolveLog(probs, (y-1))
+      U <- uniroot(shiftedmean, interval = c(-50,50), probs, y-1, tol = 10^-16) #find a suitable shifting parameter
+      t0 <- U$root
+    }else{
+      pmf_computed <- shiftConvolveLog(probs, y)
+      U <- uniroot(shiftedmean, interval = c(-50,50), probs, y, tol = 10^-16) #find a suitable shifting parameter
+      t0 <- U$root
+    }
+  }else{
+    pbd_mean <- sum(probs)
+    diff_x_pbd_mean <- x_ordinary - pbd_mean
+    count_pos = sum(diff_x_pbd_mean > 0)
+    count_neg = sum(diff_x_pbd_mean < 0)
+    if((count_pos > 0) & (count_neg > 0)){
+      pmf_computed <- shiftConvolveLog(probs, S0 = -1)
+      t0 <- 0
+    }else{
+      closest <- x_ordinary[which.min(diff_x_pbd_mean)]
+      pmf_computed <- shiftConvolveLog(probs, closest)
+      U <- uniroot(shiftedmean, interval = c(-50,50), probs, closest, tol = 10^-16) #find a suitable shifting parameter
+      t0 <- U$root
+    }
+  }
+
+  pmf_computed = c(rep(-Inf, n1), pmf_computed)
+  pmf_computed = c(pmf_computed, rep(-Inf,n0))
+
+  for(i in 1:length(x_ordinary)){
+
+    log_density = pmf_computed[x_ordinary[i]+1]
+    density = exp(log_density)
+    if(log.p){
+      return_density[x_return_index[i]]<-log_density
+    }else{
+      return_density[x_return_index[i]]<-density
+    }
+  }
+  return(return_density)
+}
+
+edge_density <- function(x, n, n1, log.p){
+  y <- x - n1
+  if(y <= 0){
+    if(log.p){
+      return(-Inf)
+    }else{
+      return(0)
+    }
+  }
+
+  if(y >= n){
+    if(log.p){
+      return(-Inf)
+    }else{
+      return(0)
+    }
+  }
+  return(NULL)
+}
+
+edge_prob <- function(x, n, n1, lower.tail, log.p){
+  y <- x - n1
+  if(y <= 0){
+    if(lower.tail){
+      if(log.p){
+        return(-Inf)
+      }else{
+        return(0)
+      }
+    }else{
+      if(log.p){
+        return(0)
+      }else{
+        return(1)
+      }
+    }
 
   }
+
+  if(y >= n){
+    if(lower.tail){
+      if(log.p){
+        return(0)
+      }else{
+        return(1)
+      }
+    }else{
+      if(log.p){
+        return(-Inf)
+      }else{
+        return(0)
+      }
+    }
+
+  }
+  return(NULL)
 }
-#dyn.load("../src/fftconv_min.so")
-#dyn.load("../src/ShiftConvolvePoibin.so")
-#dyn.load("../src/fftconv.so")
-#set.seed(18)
-#a = runif(5)
-#shiftpval(a, 4)
+
+dc_pb_dist <- function(x, probs, lower.tail = TRUE,log.p=FALSE){
+  probs = process(probs)
+  n0 = probs[1]
+  n1 = probs[2]
+  probs = probs[3:length(probs)]
+  n <- length(probs)+1
+
+  pmf_computed = NULL
+  return_dist = vector(mode = "numeric", length = length(x))
+  for(i in 1:length(x)){
+    edge <- edge_prob(x[i], n, n1, lower.tail, log.p)
+    if(!is.null(edge)){
+      return_dist[i] <- edge
+
+    }else{
+      if(is.null(pmf_computed)){
+        #Computing distribution first time if not computed already
+        if(log.p){
+          pmf_computed <- dcConvolvePairedLog(probs)
+          pmf_computed <- c(rep(-Inf, n1), pmf_computed)
+          pmf_computed <- c(pmf_computed, rep(-Inf,n0))
+        }else{
+          pmf_computed <- dcConvolvePaired(probs)
+          pmf_computed <- c(rep(0, n1), pmf_computed)
+          pmf_computed <- c(pmf_computed, rep(0,n0))
+        }
+      }
+
+      if(log.p){
+        if(lower.tail){
+          return_dist[i] <- logsum(pmf_computed[c(0:(x[i]+1))])
+        }else{
+          return_dist[i] <- logsum(pmf_computed[c((x[i]+2):length(pmf_computed))])
+        }
+      }else{
+        if(lower.tail){
+          return_dist[i] <- sum(pmf_computed[c(0:(x[i]+1))])
+        }else{
+          return_dist[i] <- sum(pmf_computed[c((x[i]+2):length(pmf_computed))])
+        }
+      }
+
+    }
+  }
+  return(return_dist)
+}
+
+dc_pb_density <- function(x, probs, log.p=FALSE){
+  probs = process(probs)
+  n0 = probs[1]
+  n1 = probs[2]
+  probs = probs[3:length(probs)]
+  n <- length(probs)+1
+
+  pmf_computed = NULL
+  return_density = vector(mode = "numeric", length = length(x))
+  for(i in 1:length(x)){
+    edge <- edge_density(x[i], n, n1, log.p)
+    if(!is.null(edge)){
+      return_density[i] <- edge
+    }else{
+      if(is.null(pmf_computed)){
+        #Computing distribution first time if not computed already
+        if(log.p){
+          pmf_computed <- dcConvolvePairedLog(probs)
+          pmf_computed <- c(rep(-Inf, n1), pmf_computed)
+          pmf_computed <- c(pmf_computed, rep(-Inf,n0))
+        }else{
+          pmf_computed <- dcConvolvePaired(probs)
+          pmf_computed <- c(rep(0, n1), pmf_computed)
+          pmf_computed <- c(pmf_computed, rep(0,n0))
+        }
+      }
+      return_density[i] <- pmf_computed[x[i]+1] # Previous if block would have already decided log.p or not
+    }
+  }
+  return(return_density)
+}
