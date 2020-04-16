@@ -14,7 +14,7 @@ We have successfully installed `ShiftConvolveFFTW` on `Windows 10: Professional 
 
 There are no external dependencies required to be installed for this version of `ShiftConvolve`. The required `minFFT` files have been compiled and included into the `ShiftConvolve` project.    
 
-`Windows` users may be required (instructed by compilation errors later anyways) to install `Rtools` via [http://www.fftw.org/install/windows.html](http://www.fftw.org/install/windows.html). Make sure to tick the box saying 'Add to system path variables' when installing. 
+`Windows` users may be required (instructed by compilation errors later anyways) to install `Rtools` from the following website [https://cran.r-project.org/bin/windows/Rtools/](https://cran.r-project.org/bin/windows/Rtools/). Make sure to tick the box saying 'Add to system path variables' when installing. 
 
 ## Installation
 
