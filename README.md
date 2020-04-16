@@ -20,7 +20,7 @@ There are no external dependencies required to be installed for this version of 
 
 The most simple installation involves simply cloning this repository and installing `ShiftConvolve` from source. 
 
-```console
+```bash
 git clone https://github.com/andrew12678/ShiftConvolve.git
 cd ShiftConvolve
 # After opening up R or Rstudio in the ShiftConvolve directory
