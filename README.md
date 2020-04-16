@@ -6,9 +6,15 @@ For the `ShiftConvolve` implementation which uses [FFTW3](http://www.fftw.org/) 
 
 In the interest of speed we all significant computational aspects of our procedure are executed by code written in C and the R code mainly acts as a wrapper around that compiled C code.
 
+We have successfully installed `ShiftConvolveFFTW` on `Windows 10: Professional Version 1909`, `macOS: Mojave 10.14.6/Catalina 10.15.4` and `Linux: Ubuntu 18.04/Manjaro 19.02 KDE Plasma`. A full installation guide will be provided below for all 3 Operating Systems.
+
+`ShiftConvolveFFTW` has also been installed on both `AMD` and `Intel` CPU systems. Specifically, a  `Intel Core i7 MacMini with 32GB of RAM`, `AMD Ryzen 5 2600 with 16GB of RAM` and a `Macbook Pro i7 with 16GB of RAM` 
+
 ## Dependencies
 
 There are no external dependencies required to be installed for this version of `ShiftConvolve`. The required `minFFT` files have been compiled and included into the `ShiftConvolve` project.    
+
+`Windows` users may be required (instructed by compilation errors later anyways) to install `Rtools` via [http://www.fftw.org/install/windows.html](http://www.fftw.org/install/windows.html). Make sure to tick the box saying 'Add to system path variables' when installing. 
 
 ## Installation
 
@@ -17,6 +23,7 @@ The most simple installation involves simply cloning this repository and install
 ```console
 git clone https://github.com/andrew12678/ShiftConvolve.git
 cd ShiftConvolve
+# After opening up R or Rstudio in the ShiftConvolve directory
 install.packages('ShiftConvolvePoibin_2.6.3.tar.gz', repos = NULL, type="source")
 ```
 
