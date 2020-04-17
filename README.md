@@ -42,3 +42,9 @@ s0 = 5200
 shiftpval(p, s0)	# compute the p-value, or right tail at s0
 shiftpval(1-p, n-s0)	# compute the p-value, or left tail at s0
 ```
+
+## References
+<a id="1">[1]</a> 
+Peres, N., Lee, A., and Keich, U. (2020). Exactly computing the tail of the Poisson-Binomial Distribution. 
+[arXiv:2004.07429](https://arxiv.org/abs/2004.07429)
+
