@@ -64,7 +64,7 @@ p <- seq(0, 1, 0.01)
 dpoisbin(x,probs,method="ShiftConvolve",log.p=FALSE)
 ppoisbin(x,probs,method="ShiftConvolve",lower.tail=FALSE,log.p=TRUE)
 qpoisbin(p,probs,method="ShiftConvolve",lower.tail=TRUE,log.p=FALSE)
-rpoisbin(n,probs,method="ShiftConvolve")
+rpoisbin(n,probs)
 }
 \author{
 Andrew Ray Lee, Noah Peres and Uri Keich

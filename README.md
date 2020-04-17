@@ -1,4 +1,7 @@
 # ShiftConvolve
+<!-- badges: start -->
+[![Travis build status](https://travis-ci.org/andrew12678/ShiftConvolve.svg?branch=master)](https://travis-ci.org/andrew12678/ShiftConvolve)
+<!-- badges: end -->
 `ShiftConvolve` is a R package which uses exponential shifting and the Fast Fourier Transformations (FFT) to compute the (right) tail of distribution of the Poisson Binomial Distribution. 
 This package makes use of the minimalist Fast Fourier Transform library known as [minFFT](https://github.com/aimukhin/minfft) to perform the necessary DFT and Inverse DFT computations.
 
@@ -20,14 +23,12 @@ There are no external dependencies required to be installed for this version of 
 
 The most simple installation involves simply cloning this repository and installing `ShiftConvolve` from source. 
 
-```bash
-git clone https://github.com/andrew12678/ShiftConvolve.git
-cd ShiftConvolve
-# After opening up R or Rstudio in the ShiftConvolve directory
-install.packages('ShiftConvolvePoibin_2.6.4.tar.gz', repos = NULL, type="source")
+```R
+install.packages('devtools') # If you have not installed devtools
+devtools::install_github('https://github.com/andrew12678/ShiftConvolve.git')
 ```
 
-An alternative installation procedure involves cloning the repository, creating a `RStudio` project in the `ShiftConvolvePoibin` folder and then building. 
+An alternative installation procedure involves cloning the repository, creating a `RStudio` project and then building. 
 
 ## Examples
 
@@ -36,11 +37,14 @@ An simple example with the uniform distribution
 ```R
 library(ShiftConvolvePoibin)
 set.seed(18)
-n = 10000
-p = runif(n)
-s0 = 5200
-shiftpval(p, s0)	# compute the p-value, or right tail at s0
-shiftpval(1-p, n-s0)	# compute the p-value, or left tail at s0
+n=1000
+probs <- runif(n)
+x <- c(200, 500, 800)
+p <- seq(0, 1, 0.01)
+dpoisbin(x,probs,method="ShiftConvolve",log.p=FALSE)
+ppoisbin(x,probs,method="ShiftConvolve",lower.tail=FALSE,log.p=TRUE)
+qpoisbin(p,probs,method="ShiftConvolve",lower.tail=TRUE,log.p=FALSE)
+rpoisbin(n,probs)
 ```
 
 ## References

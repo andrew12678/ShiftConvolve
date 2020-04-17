@@ -1,15 +1,12 @@
 Package: ShiftConvolvePoibin
 Type: Package
 Title: Calculates the p-value for a Poisson Binomial distribution using
-        exponential shifting and Fast Fourier Transformations with
-        minFFT.
+        exponential shifting and Fast Fourier Transformations with minFFT
 Version: 2.6.4
 Author: Andrew Ray Lee, Noah Peres and Uri Keich
 Maintainer: Andrew Ray Lee <andrewl@maths.sydney.edu.au>
 Description: Uses a shifted FFT convolution approach to compute the distribution of the Poisson Binomial but stays in the Fourier domain for speed.
-License: What license it uses
+License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.0
-NeedsCompilation: yes
-Packaged: 2020-04-17 01:38:26 UTC; andrewl

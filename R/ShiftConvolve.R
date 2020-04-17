@@ -4,6 +4,7 @@
 #' compute the distribution of the Poisson Binomial Distribution
 #'
 #'@rdname ShiftConvolvePoibin
+#'@importFrom stats rbinom runif uniroot
 #'@useDynLib ShiftConvolvePoibin
 #'@title ShiftConvolve Poisson Binomial
 #'
@@ -45,7 +46,7 @@
 #'dpoisbin(x,probs,method="ShiftConvolve",log.p=FALSE)
 #'ppoisbin(x,probs,method="ShiftConvolve",lower.tail=FALSE,log.p=TRUE)
 #'qpoisbin(p,probs,method="ShiftConvolve",lower.tail=TRUE,log.p=FALSE)
-#'rpoisbin(n,probs,method="ShiftConvolve")
+#'rpoisbin(n,probs)
 #'@export
 dpoisbin <- function(x, probs, method = "ShiftConvolve", log.p = FALSE){
   #Check if input x is NULL,
