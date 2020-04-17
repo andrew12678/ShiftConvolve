@@ -3,16 +3,20 @@
 #' A package which uses exponential shifting and Fast Fourier Transformations with the minFFT library to
 #' compute the distribution of the Poisson Binomial Distribution
 #'
-#'@rdname ShiftedConvolvePB
+#'@rdname ShiftConvolvePoibin
 #'@useDynLib ShiftConvolvePoibin
 #'@title ShiftConvolve Poisson Binomial
 #'
-#'@name ShiftedConvolvePB
+#'@name ShiftConvolvePoibin
 #'@author Andrew Ray Lee, Noah Peres and Uri Keich
 #'@description
 #'Density, distribution function, quantile function and random generation for
 #'the Poisson binomial distribution with the option of using the ShiftConvolve method.
 #'
+#'@section References:
+#'Peres, N., Lee, A., and Keich, U. (2020). Exactly computing the tail of the Poisson-Binomial Distribution.
+#'    \href{arXiv:2004.07429}{
+#'    https://arxiv.org/abs/2004.07429}
 #'
 #'@param x           Either a vector of observed numbers of successes
 #'                   (or vector of quantiles as dbinom/pbinom refers to) or NULL.
@@ -28,6 +32,9 @@
 #'@param lower.tail  Logical value indicating if results are \eqn{P[X \le x]}
 #'                   (if \code{TRUE}; default) or \eqn{P[X > x]} (if
 #'                   \code{FALSE}).
+#'
+#'
+#'
 #'
 #'@examples
 #'set.seed(18)
@@ -78,7 +85,7 @@ dpoisbin <- function(x, probs, method = "ShiftConvolve", log.p = FALSE){
 
 }
 
-#'@rdname ShiftedConvolvePB
+#'@rdname ShiftConvolvePoibin
 #'@export
 ppoisbin <- function(x, probs, method = "ShiftConvolve", lower.tail = TRUE, log.p = FALSE){
   #Check if input x is NULL,
@@ -121,7 +128,7 @@ ppoisbin <- function(x, probs, method = "ShiftConvolve", lower.tail = TRUE, log.
 
 }
 
-#'@rdname ShiftedConvolvePB
+#'@rdname ShiftConvolvePoibin
 #'@export
 qpoisbin <- function(p, probs, method = "ShiftConvolve", lower.tail = TRUE, log.p = FALSE){
   #Ensure we receive a legimate boolean for log.p
@@ -172,7 +179,7 @@ qpoisbin <- function(p, probs, method = "ShiftConvolve", lower.tail = TRUE, log.
 
 }
 
-#'@rdname ShiftedConvolvePB
+#'@rdname ShiftConvolvePoibin
 #'@export
 rpoisbin <- function(n, probs){
   # check if 'n' is NULL
