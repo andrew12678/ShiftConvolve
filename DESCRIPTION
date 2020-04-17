@@ -4,7 +4,7 @@ Title: Calculates the p-value for a Poisson Binomial distribution using
         exponential shifting and Fast Fourier Transformations with minFFT
 Version: 2.6.4
 Author: Andrew Ray Lee, Noah Peres and Uri Keich
-Maintainer: Andrew Ray Lee <andrewl@maths.sydney.edu.au>
+Maintainer: Andrew Ray Lee <andrewl@maths.usyd.edu.au>
 Description: Uses a shifted FFT convolution approach to compute the distribution of the Poisson Binomial but stays in the Fourier domain for speed.
 License: GPL (>= 2)
 Encoding: UTF-8
