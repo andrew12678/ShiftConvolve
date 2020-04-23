@@ -38,6 +38,11 @@ and must be either \code{"ShiftConvolve"} or \code{"DC"}}
 \item{n}{Number of observations. If \code{length(n) > 1}, the
 length is taken to be the number required.}
 }
+\value{
+\code{dpoisbin} gives the density, \code{ppoisbin} computes the distribution
+function, \code{qpoisbin} gives the quantile function and \code{rpoisbin}
+generates random deviates.
+}
 \description{
 Density, distribution function, quantile function and random generation for
 the Poisson binomial distribution with the option of using the ShiftConvolve method.
@@ -51,20 +56,20 @@ compute the distribution of the Poisson Binomial Distribution
 \section{References}{
 
 Peres, N., Lee, A., and Keich, U. (2020). Exactly computing the tail of the Poisson-Binomial Distribution.
-   \href{arXiv:2004.07429}{
-   https://arxiv.org/abs/2004.07429}
+   \href{https://arxiv.org/abs/2004.07429}{
+   arXiv:2004.07429}
 }
 
 \examples{
 set.seed(18)
-n=1000
+n <- 1000
 probs <- runif(n)
 x <- c(200, 500, 800)
 p <- seq(0, 1, 0.01)
-dpoisbin(x,probs,method="ShiftConvolve",log.p=FALSE)
-ppoisbin(x,probs,method="ShiftConvolve",lower.tail=FALSE,log.p=TRUE)
-qpoisbin(p,probs,method="ShiftConvolve",lower.tail=TRUE,log.p=FALSE)
-rpoisbin(n,probs)
+dpoisbin(x, probs, method = "ShiftConvolve", log.p = FALSE)
+ppoisbin(x, probs, method = "ShiftConvolve", lower.tail = FALSE, log.p = TRUE)
+qpoisbin(p, probs, method = "ShiftConvolve", lower.tail = TRUE, log.p = FALSE)
+rpoisbin(n, probs)
 }
 \author{
 Andrew Ray Lee, Noah Peres and Uri Keich

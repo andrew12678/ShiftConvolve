@@ -1,10 +1,10 @@
 Package: ShiftConvolvePoibin
 Type: Package
-Title: Calculates the p-Value for a Poisson Binomial Distribution using Exponential Shifting and Fast Fourier Transformations
+Title: Exactly Computing the Tail of the Poisson-Binomial Distribution
 Version: 2.6.4
 Author: Andrew Ray Lee, Noah Peres and Uri Keich
 Maintainer: Andrew Ray Lee <andrewl@maths.usyd.edu.au>
-Description: Uses a shifted FFT convolution approach to compute the distribution of the Poisson Binomial but stays in the Fourier domain for speed.
+Description: This package provides exact methods for computing the Poisson-Binomial Distribution (PBD). The package provides a function for generating a random sample from the PBD, as well as two distinct approaches for computing the density, distribution, and quantile functions of the PBD. The first method uses direct-convolution, or a dynamic-programming approach which is numerically stable but can be slow for a large input due to its quadratic complexity. The second method is much faster on large inputs thanks to its use of Fast Fourier Transform (FFT) based convolutions. Notably in this case the package uses an exponential shift to practically guarantee the relative accuracy of the computation of an arbitrarily small tail of the PBD -- something that FFT-based methods often struggle with. This ShiftConvolvePoiBin method is described in Peres, Lee and Keich (2020) <arXiv:2004.07429> where it is also shown to be competitive with the fastest implementations for exactly computing the entire Poisson-Binomial distribution.
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
